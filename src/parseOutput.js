@@ -3,10 +3,11 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = (output, packageRoot) => {
-    output = output.trimStart();
-    if(!output.startsWith("---\n"))
+    const headerStartIndex = output.indexOf("---");
+    if(headerStartIndex === -1)
         return;
-    output = output.slice(4);
+
+    output = output.slice(headerStartIndex + 3).trimStart();
 
     const headerEndIndex = output.indexOf("\n---\n");
     if(headerEndIndex === -1)
@@ -31,7 +32,11 @@ module.exports = (output, packageRoot) => {
     if(!fs.existsSync(dirname))
         fs.mkdirSync(dirname, { recursive: true });
     
-    if(fs.existsSync(to) && !header.overwrite)
-        throw `${to} already exists`;
+    if(fs.existsSync(to)) {
+        if(header.overwrite === "skip")
+            return;
+        if(header.overwrite !== true)
+            throw `${to} already exists`;
+    }
     fs.writeFileSync(to, contentText);
 }

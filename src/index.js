@@ -9,14 +9,13 @@ const createInput = require("./createInput");
 const parseOutput = require("./parseOutput");
 
 (async () => {
-    const packageRoot = paths.findFirst(".gen");
-    const genPaths = (fs.readFileSync(path.resolve(packageRoot, ".gen"), 'utf-8').split("\n")
-        .map(genPath => genPath.startsWith("./") ? (
-            genPath
-        ) : (
-            path.join("node_modules", genPath)
-        ))
-    );
+    const packageRoot = paths.findFirst("gen.config.json");
+    if(packageRoot == null) {
+        console.error("No project root found.");
+        process.exit(-1);
+    }
+
+    let config = JSON.parse(fs.readFileSync(path.resolve(packageRoot, "gen.config.json"), 'utf-8'));
 
     const actions = [];
     let i = 2;
@@ -38,10 +37,15 @@ const parseOutput = require("./parseOutput");
 
     const actionPath = path.join(...actions);
     let files = null;
-    for(const templatePath of genPaths) {
+    let projectConfig = null;
+    for(let templatePath in config) {
+        if(!templatePath.startsWith("./"))
+            templatePath = path.join("node_modules", templatePath);
         const absolutePath = path.join(packageRoot, templatePath, actionPath);
         if(!fs.existsSync(absolutePath))
             continue;
+        
+        projectConfig = config[templatePath];
 
         files = (fs.readdirSync(absolutePath)
             .map(file => path.join(absolutePath, file))
@@ -70,6 +74,8 @@ const parseOutput = require("./parseOutput");
         console.error("ERROR: No such generator found");
         process.exit(1);
     }
+    if(typeof projectConfig != "object")
+        projectConfig = {};
 
     for(const actionFile of files) {
         if(process.env["GEN_DEBUG"]) {
@@ -77,7 +83,7 @@ const parseOutput = require("./parseOutput");
             console.log("----------------------");
         }
         const input = await Promise.resolve(createInput({
-            args: parsedArgs,
+            args: {...projectConfig, ...parsedArgs},
             projectRoot: packageRoot
         }));
         const output = await ejs.renderFile(actionFile, input);
