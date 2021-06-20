@@ -31,5 +31,7 @@ module.exports = (output, packageRoot) => {
     if(!fs.existsSync(dirname))
         fs.mkdirSync(dirname, { recursive: true });
     
+    if(fs.existsSync(to) && !header.overwrite)
+        throw `${to} already exists`;
     fs.writeFileSync(to, contentText);
 }

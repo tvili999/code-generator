@@ -29,7 +29,7 @@ const parseOutput = require("./parseOutput");
 
     const actionArgs = process.argv.slice(i);
     const parsedArgs = { };
-    for(let i = 0; i < actionArgs; i += 2) {
+    for(let i = 0; i < actionArgs.length; i += 2) {
         const key = actionArgs[i];
         const value = actionArgs[i + 1];
         if(key.startsWith("--") && value)
@@ -77,7 +77,7 @@ const parseOutput = require("./parseOutput");
             console.log("----------------------");
         }
         const input = await Promise.resolve(createInput({
-            args: actionArgs,
+            args: parsedArgs,
             projectRoot: packageRoot
         }));
         const output = await ejs.renderFile(actionFile, input);
