@@ -86,7 +86,9 @@ const parseOutput = require("./parseOutput");
             args: {...projectConfig, ...parsedArgs},
             projectRoot: packageRoot
         }));
-        const output = await ejs.renderFile(actionFile, input);
+        const output = await ejs.renderFile(actionFile, input, {
+            filename: actionFile
+        });
         if(process.env["GEN_DEBUG"]) 
             console.log(output)
         else
