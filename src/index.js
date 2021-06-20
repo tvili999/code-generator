@@ -39,13 +39,14 @@ const parseOutput = require("./parseOutput");
     let files = null;
     let projectConfig = null;
     for(let templatePath in config) {
+        const currentConfig = config[templatePath];
         if(!templatePath.startsWith("./"))
             templatePath = path.join("node_modules", templatePath);
         const absolutePath = path.join(packageRoot, templatePath, actionPath);
         if(!fs.existsSync(absolutePath))
             continue;
         
-        projectConfig = config[templatePath];
+        projectConfig = currentConfig;
 
         files = (fs.readdirSync(absolutePath)
             .map(file => path.join(absolutePath, file))
@@ -82,9 +83,18 @@ const parseOutput = require("./parseOutput");
             console.log(actionFile)
             console.log("----------------------");
         }
+
+        const hooks = {
+            afterCreate: []
+        }
+        let addHook = (name, handler) => {
+            hooks[name].push(handler);
+        }
+
         const input = await Promise.resolve(createInput({
             args: {...projectConfig, ...parsedArgs},
-            projectRoot: packageRoot
+            projectRoot: packageRoot,
+            addHook
         }));
         const output = await ejs.renderFile(actionFile, input, {
             filename: actionFile
@@ -93,5 +103,8 @@ const parseOutput = require("./parseOutput");
             console.log(output)
         else
             await Promise.resolve(parseOutput(output, packageRoot));
+
+        for(const handler of hooks.afterCreate)
+            await Promise.resolve(handler());
     }
 })();
