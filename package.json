@@ -1,0 +1,19 @@
+{
+  "name": "code-generator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/tvili999/code-generator",
+  "author": "Takacs Vili <tvili999@gmail.com>",
+  "license": "MIT",
+  "bin": {
+    "gen": "./index.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.6",
+    "glob": "^7.1.7",
+    "js-container": "https://github.com/tvili999/js-container",
+    "js-utils": "https://github.com/tvili999/js-utils",
+    "js-yaml": "^4.1.0",
+    "node-tools": "https://github.com/tvili999/node-tools"
+  }
+}
