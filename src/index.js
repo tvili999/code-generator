@@ -95,16 +95,37 @@ const parseOutput = require("./parseOutput");
             args: {...projectConfig, ...parsedArgs},
             projectRoot: packageRoot,
             addHook
-        }));
-        const output = await ejs.renderFile(actionFile, input, {
-            filename: actionFile
-        });
+        }, actionFile));
+        let output;
+        try {
+            output = await ejs.renderFile(actionFile, input, {
+                async: true,
+                filename: actionFile
+            });
+            output = await output;
+        }
+        catch(e) {
+            console.error("ERROR: Error during render");
+            console.error(e);
+            process.exit(1);
+        }
         if(process.env["GEN_DEBUG"]) 
             console.log(output)
         else
             await Promise.resolve(parseOutput(output, packageRoot));
 
-        for(const handler of hooks.afterCreate)
-            await Promise.resolve(handler());
+        try {
+            for(const handler of hooks.afterCreate) 
+                await Promise.resolve(handler());
+        }
+        catch(e) {
+            console.error("ERROR: Error during render");
+            console.error(e);
+            process.exit(1);
+        }
     }
-})();
+})().catch(e => {
+    console.error("ERROR: Error during render");
+    console.error(e);
+    process.exit(1);
+});

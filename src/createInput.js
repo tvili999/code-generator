@@ -1,11 +1,18 @@
 const process = require("process");
 const path = require("path");
 
-module.exports = async (args) => {
+module.exports = async (args, templatePath) => {
     return {
         ...args,
         require: (name) => {
-            return require(name);
+            if(name.startsWith("./") || name.startsWith("../")) {
+                const moduleDir = path.dirname(templatePath);
+                const relativePath = path.relative(__dirname, moduleDir);
+                return require(path.join(relativePath, name));
+            }
+            else {
+                return require(name);
+            }
         },
         cwd: process.cwd(),
         path: (...parts) => {
